@@ -2,6 +2,7 @@
 
 An authenticated domain user can trigger SYSTEM-level DeleteFileW and CreateDirectoryW on the DC. The file path is derived from the tier entry's path field (populated by the StorageManager) with the hardcoded suffix "WindowsApps" appended.
 
+```
 4.2 Exploitation Chain
 Precondition: StorSvc must be running (it starts automatically or on-demand), and the tier arrays must contain valid entries with a path pointing to a user-controllable directory.
 Trigger: Low-privilege user calls opnum 17 via ALPC (ncalrpc) with enum_type=1, level=0.
@@ -45,6 +46,7 @@ Observe that CreateDirectoryW creates a directory owned by NT AUTHORITY\SYSTEM.
 [+] ACL: NT AUTHORITY\SYSTEM → FullControl (Allow)
 [+] ACL: BUILTIN\Administrators → FullControl (Allow)
 Key evidence: The directory was created by testpoc's RPC call but is owned by NT AUTHORITY\SYSTEM, proving that CreateDirectoryW executed without impersonation. StorSvc (PID 2468) remained running after exploitation — no crash occurred.
+```
 
 6. CVSS v3.1 Score
 Metric	Value	Rationale
