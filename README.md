@@ -48,45 +48,14 @@ Observe that CreateDirectoryW creates a directory owned by NT AUTHORITY\SYSTEM.
 Key evidence: The directory was created by testpoc's RPC call but is owned by NT AUTHORITY\SYSTEM, proving that CreateDirectoryW executed without impersonation. StorSvc (PID 2468) remained running after exploitation — no crash occurred.
 ```
 
-6. CVSS v3.1 Score
-Metric	Value	Rationale
-Attack Vector (AV)	Local	Requires local or RDP access to the DC
-Attack Complexity (AC)	Low	No special conditions — any DC is affected
-Privileges Required (PR)	Low	Any authenticated domain user account
-User Interaction (UI)	None	No user interaction required
-Scope (S)	Unchanged	SYSTEM on same host
-Confidentiality (C)	High	Full SYSTEM access → read any file/secret
-Integrity (I)	High	Full SYSTEM access → modify any file/config
-Availability (A)	High	Full SYSTEM access → can halt services
-CVSS Score: 7.8 (High) — Vector: AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H
-
 Note on Scope: While the immediate impact is local (SYSTEM on the DC), the strategic impact of compromising a Domain Controller effectively compromises the entire AD forest. If Scope is evaluated as Changed (attacker crosses authorization boundary from user to SYSTEM), the score would increase to 8.8 (High).
 
 7. Affected Versions
 Confirmed: Windows Server 2022 (Build 20348) — Domain Controller role
 Potentially affected: Any Windows Server version with StorSvc containing the same SKU check logic in FUN_180027eac. This includes Windows Server 2019 and Windows Server 2025 if they share the same storsvc.dll code path. Testing on additional versions recommended.
 Not affected: Workstation editions (product type 1) and non-DC Server editions (product type 3) correctly call RpcImpersonateClient.
-8. Suggested Remediation
-Option A: Fix the bitmask (minimal change)
-// Current (vulnerable):
-if ((product_type - 1) & 0xFFFFFFFD) == 0)  // excludes DC (type 2)
 
-// Fixed:
-if ((product_type - 1) & 0xFFFFFFFC) == 0)  // includes types 1, 2, and 3
-//                         ~~~~~~~~
-// Changing 0xFFFFFFFD → 0xFFFFFFFC clears both bit 0 AND bit 1
-// DC (type 2): (2-1) & 0xFFFFFFFC = 1 & 0xFFFFFFFC = 0 → impersonation ON ✓
-Option B: Explicit type check (clearer intent)
-// Replace bitmask with explicit range check:
-if (product_type >= 1 && product_type <= 3) {
-    RpcImpersonateClient(NULL);
-}
-Option C: Always impersonate (safest)
-// Remove the SKU check entirely — always impersonate for file operations:
-RpcImpersonateClient(NULL);
-bImpersonating = TRUE;
-// ... file operations ...
-RpcRevertToSelf();
+```
 9. Additional Technical Details
 9.1 RPC Interface
 Field	Value
@@ -333,3 +302,4 @@ if (bImpersonating) {
 }
 
 return S_OK;
+```
