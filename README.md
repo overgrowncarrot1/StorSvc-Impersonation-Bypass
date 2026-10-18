@@ -2,7 +2,9 @@
 
 On a Windows10 or Windows11 machine we do not need StoragePool as StorageSpace already exists by default. 
 
-We are doing skip-setup as this was made to setup a share and setup the %PATH%, if you cannot write to a %PATH% this exploit will not work for a reverse shell as it is using a phantom DLL
+We are doing skip-setup as this was made to setup a share and setup the %PATH%, if you cannot write to a %PATH% this exploit will not work for a reverse shell as it is using a phantom DLL.
+
+You get one-shot, so if you run it and mess up, the machine would need to be restarted. You cannot run again as the StorSvc will be in a state where it is not able to recover.
 
 ```
 python3 /home/kali/dll-research/poc/storsvc_exploit.py \
